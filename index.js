@@ -5,7 +5,9 @@ const Engineer = require("./lib/Engineer.js");
 const inquirer = require("inquirer");
 const fs = require("fs");
 
-const addManager = async () => {
+const employeeArray = [];
+
+const generateManager = async () => {
   const input = await inquirer.prompt([
     {
       type: "input",
@@ -22,7 +24,7 @@ const addManager = async () => {
     {
       type: "input",
       name: "id",
-      message: "Please enter the manager's ID.",
+      message: "What is the manager's ID?",
       validate: (nameInput) => {
         if (isNaN(nameInput)) {
           console.log("Please enter the manager's ID!");
@@ -37,7 +39,7 @@ const addManager = async () => {
       name: "email",
       message: "Please enter the manager's email.",
       validate: (email) => {
-        valid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+        valid = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/.test(email);
         if (valid) {
           return true;
         } else {
@@ -48,7 +50,7 @@ const addManager = async () => {
     },
     {
       type: "input",
-      name: "officeNumber",
+      name: "office",
       message: "Please enter the manager's office number",
       validate: (nameInput) => {
         if (isNaN(nameInput)) {
@@ -64,11 +66,17 @@ const addManager = async () => {
   const { name, id, email, office } = input;
   const manager = new Manager(name, id, email, office);
 
-  return manager;
+  employeeArray.push(manager);
 };
 
-const addEmployee = async () => {
+const generateEmployees = async () => {
   const input = await inquirer.prompt([
+    {
+      type: "list",
+      name: "employeeType",
+      message: "Type of employee:",
+      choices: ["Engineer", "Intern"],
+    },
     {
       type: "input",
       name: "name",
@@ -77,25 +85,106 @@ const addEmployee = async () => {
         if (nameInput) {
           return true;
         } else {
+          console.log("Enter a valid name.");
           return false;
         }
       },
     },
     {
-      // Employee Type
+      type: "input",
+      name: "id",
+      message: "What is the employee's ID?",
+      validate: (idInput) => {
+        if (isNaN(idInput)) {
+          console.log("Enter a valid ID.");
+          return false;
+        } else {
+          return true;
+        }
+      },
     },
     {
-      // Manager's ID
+      type: "input",
+      name: "email",
+      message: "Please enter the employee's email.",
+      validate: (email) => {
+        valid = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/.test(email);
+        if (valid) {
+          return true;
+        } else {
+          console.log("Please enter an email!");
+          return false;
+        }
+      },
     },
     {
-      // Manager's email
+      type: "input",
+      name: "email",
+      when: (input) => input.role === "Engineer",
+      message: "What is the engineer's GitHub?",
+      validate: (github) => {
+        if (github) {
+          return true;
+        } else {
+          console.log("Please enter a GitHub username.");
+          return false;
+        }
+      },
     },
     {
-      // Manager's office number
+      type: "input",
+      name: "email",
+      when: (input) => input.role === "Intern",
+      message: "What is the intern's school?",
+      validate: (valid) => {
+        if (valid) {
+          return true;
+        } else {
+          console.log("Please enter a school.");
+          return false;
+        }
+      },
+    },
+    {
+      type: "confirm",
+      name: "confirm",
+      message: "Would you like to add more team members?",
+      default: false
     },
   ]);
+
+  const { name, id, email, github, school, confirm } = input;
+
+  if (input.github) {
+    const engineer = new Engineer(name, id, email, github);
+
+    employeeArray.push(engineer);
+  } else if (input.school) {
+    const engineer = new Engineer(name, id, email, school);
+
+    employeeArray.push(engineer);
+  }
+
+  if(confirm) {
+    generateEmployees(); 
+  }
 };
 
-const createHtmlFile = (employeeData) => {};
+const generateHtmlFile = (data) => {
+  fs.writeFile("./dist/index.html", data, (err) => {
+    if (err) {
+      console.log(err);
+      return;
+      // when the profile has been created
+    } else {
+      console.log("Team view has been created in /dist/index.html");
+    }
+  });
+};
 
-addManager();
+const promptUser = async () => {
+  await generateManager(); 
+  await generateEmployees();
+
+  generateHtmlFile
+};
