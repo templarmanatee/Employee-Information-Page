@@ -2,6 +2,8 @@ const Manager = require("./lib/Manager.js");
 const Intern = require("./lib/Intern.js");
 const Engineer = require("./lib/Engineer.js");
 
+const generateHtml = require('./src/generateHtml');
+
 const inquirer = require("inquirer");
 const fs = require("fs");
 
@@ -63,8 +65,8 @@ const generateManager = async () => {
     },
   ]);
 
-  const { name, id, email, office } = input;
-  const manager = new Manager(name, id, email, office);
+  let { name, id, email, office } = input;
+  let manager = new Manager(name, id, email, office);
 
   employeeArray.push(manager);
 };
@@ -119,9 +121,9 @@ const generateEmployees = async () => {
     },
     {
       type: "input",
-      name: "email",
-      when: (input) => input.role === "Engineer",
+      name: "github",
       message: "What is the engineer's GitHub?",
+      when: (input) => input.employeeType === "Engineer",
       validate: (github) => {
         if (github) {
           return true;
@@ -133,9 +135,9 @@ const generateEmployees = async () => {
     },
     {
       type: "input",
-      name: "email",
-      when: (input) => input.role === "Intern",
+      name: "school",
       message: "What is the intern's school?",
+      when: (input) => input.employeeType === "Intern",
       validate: (valid) => {
         if (valid) {
           return true;
@@ -153,29 +155,30 @@ const generateEmployees = async () => {
     },
   ]);
 
-  const { name, id, email, github, school, confirm } = input;
+  let { name, id, email, employeeType, github, school, confirm } = input;
+  let employee; 
 
-  if (input.github) {
+  if (employeeType === 'Engineer') {
     const engineer = new Engineer(name, id, email, github);
 
-    employeeArray.push(engineer);
-  } else if (input.school) {
-    const engineer = new Engineer(name, id, email, school);
+    employee = engineer; 
+  } else if (employeeType === 'Intern') {
+    const intern = new Intern(name, id, email, school);
 
-    employeeArray.push(engineer);
+    employee = intern; 
   }
+  employeeArray.push(employee);
 
   if(confirm) {
-    generateEmployees(); 
+    await generateEmployees(); 
   }
 };
 
-const generateHtmlFile = (data) => {
+const generateFile = (data) => {
   fs.writeFile("./dist/index.html", data, (err) => {
     if (err) {
       console.log(err);
       return;
-      // when the profile has been created
     } else {
       console.log("Team view has been created in /dist/index.html");
     }
@@ -186,5 +189,8 @@ const promptUser = async () => {
   await generateManager(); 
   await generateEmployees();
 
-  generateHtmlFile
+  const htmlData = generateHtml(employeeArray); 
+  generateFile(htmlData); 
 };
+
+promptUser();
