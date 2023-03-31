@@ -29,7 +29,9 @@ Enter the manager's information first, then enter employee information for eithe
 
 ## Demo
 
-https://watch.screencastify.com/v/FVidlqpGnlbsQZQFhz8S
+Demo: https://watch.screencastify.com/v/FVidlqpGnlbsQZQFhz8S
+
+Tests: https://watch.screencastify.com/v/2ODrxUXXHnK00aZvUO6q
 
 ## License
 
